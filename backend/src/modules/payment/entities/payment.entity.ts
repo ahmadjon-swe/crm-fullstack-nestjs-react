@@ -1,11 +1,10 @@
 import { BaseEntity } from 'src/database/entities/base-entity';
+import { PAYMENT_RELATIONS } from 'src/database/relations/payment.relations';
+import { PaymentMethod } from 'src/shared/enums/payment-method.enum';
+import { PaymentType } from 'src/shared/enums/payment-type.enum';
 import { Column, Entity, JoinColumn, ManyToOne } from 'typeorm';
 import { Student } from 'src/modules/student/entities/student.entity';
 import { Auth } from 'src/modules/auth/entities/auth.entity';
-import { PaymentMethod } from 'src/shared/enums/payment-method.enum';
-import { PaymentType } from 'src/shared/enums/payment-type.unum';
-
-
 
 @Entity('payment')
 export class Payment extends BaseEntity {
@@ -21,7 +20,7 @@ export class Payment extends BaseEntity {
   @Column({ type: 'varchar', nullable: true })
   description?: string;
 
-  // e.g. "2025-05"
+  /** Format: "YYYY-MM" e.g. "2025-05" */
   @Column({ type: 'varchar', length: 7 })
   month!: string;
 
@@ -33,3 +32,6 @@ export class Payment extends BaseEntity {
   @JoinColumn({ name: 'admin_id' })
   admin: Auth | null;
 }
+
+// Export relations used by this entity
+export { PAYMENT_RELATIONS };

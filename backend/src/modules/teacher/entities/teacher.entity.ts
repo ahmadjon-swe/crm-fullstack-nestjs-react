@@ -1,4 +1,5 @@
 import { BaseEntity } from 'src/database/entities/base-entity';
+import { TEACHER_RELATIONS } from 'src/database/relations/teacher.relations';
 import { Column, Entity, OneToMany } from 'typeorm';
 import { Group } from 'src/modules/group/entities/group.entity';
 
@@ -16,6 +17,10 @@ export class Teacher extends BaseEntity {
   @Column({ type: 'varchar' })
   direction!: string;
 
+  // Relation defined using TEACHER_RELATIONS constant
   @OneToMany(() => Group, (group) => group.teacher)
   groups: Group[];
 }
+
+// Export relations used by this entity
+export { TEACHER_RELATIONS };

@@ -1,137 +1,91 @@
-# CRM Backend — O'quv markazi
+# CRM Backend — NestJS
 
-NestJS + TypeORM + PostgreSQL
+O'quv markazi boshqaruv tizimi (CRM) uchun backend.
 
-## Setup
+## Texnologiyalar
+- **NestJS** (Node.js framework)
+- **TypeORM** + **PostgreSQL**
+- **JWT** (access + refresh token)
+- **Swagger** (to'liq API dokumentatsiya)
+- **bcrypt** (parol xeshlash)
+- **@nestjs/schedule** (oylik avtomatik to'lov CRON)
+
+## Tezkor ishga tushirish
 
 ```bash
+# 1. .env faylini sozlash
+cp .env.example .env
+# .env ni to'ldiring (DB, JWT, MAIL ma'lumotlari)
+
+# 2. Bog'liqliklarni o'rnatish
 npm install
-```
 
-`.env` faylini to'ldiring:
-```
-DB_HOST=localhost
-DB_PORT=5432
-DB_USERNAME=postgres
-DB_PASSWORD=your_password
-DB_NAME=crm_db
-JWT_ACCESS_SECRET=...
-JWT_REFRESH_SECRET=...
-PORT=3000
-```
+# 3. Birinchi superadmin yaratish
+npm run seed:superadmin
 
-## Migration
-
-```bash
-# Build first
-npm run build
-
-# Run migrations
-npm run migration:run
-```
-
-## Birinchi superadmin (qo'lda DB ga kiritish)
-
-```sql
-INSERT INTO auth (username, name, email, password, role)
-VALUES (
-  'superadmin',
-  'Super Admin',
-  'admin@example.com',
-  '$2b$12$...',   -- bcrypt hash of your password
-  'superadmin'
-);
-```
-
-Yoki migration dan keyin quyidagi endpoint ishlatiladi (birinchi superadmin yaratish uchun vaqtincha guard olib tashlab):
-`POST /api/auth` → keyin qaytarib qo'ying.
-
-## Run
-
-```bash
+# 4. Ishga tushirish (dev)
 npm run start:dev
+
+# API:    http://localhost:3000/api
+# Swagger: http://localhost:3000/api-docs
 ```
 
-## Swagger
+## Fayl tuzilmasi
 
-`http://localhost:3000/docs`
+```
+src/
+├── common/
+│   ├── decorators/        # @Roles() decorator
+│   ├── guards/            # AuthGuard, RolesGuard
+│   └── swagger/           # Swagger response decorators
+├── database/
+│   ├── entities/          # BaseEntity (id, createdAt, updatedAt, deletedAt)
+│   ├── migrations/        # TypeORM migratsiyalar
+│   └── relations/         # Entity relation konstantalar (alohida faylda)
+├── modules/
+│   ├── auth/              # Login, OTP verify, JWT token
+│   ├── teacher/           # O'qituvchilar CRUD
+│   ├── student/           # O'quvchilar CRUD + qarzkorlar
+│   ├── group/             # Guruhlar + student add/remove + davomat
+│   ├── payment/           # To'lovlar + oylik hisobot + CRON
+│   ├── attendance/        # Davomat (single + bulk) + oylik statistika
+│   └── dashboard/         # Bosh sahifa statistikasi
+├── scripts/
+│   └── seed-superadmin.ts # Birinchi superadmin yaratish
+└── shared/
+    ├── constants/         # JWT konstantalar
+    ├── enums/             # RolesAdmin, WeekDays, LessonTime, PaymentMethod, PaymentType, AttendanceStatus
+    └── utils/             # Yordamchi funksiyalar
+```
 
-## API Endpoints
+## API Endpointlar (qisqacha)
 
-### Auth
-| Method | Path | Role | Description |
-|--------|------|------|-------------|
-| POST | /api/auth/login | — | Login (sends OTP) |
-| POST | /api/auth/verify | — | Verify OTP, get tokens |
-| POST | /api/auth/refresh/:id | — | Refresh access token |
-| POST | /api/auth | SUPERADMIN | Create admin |
-| GET | /api/auth | SUPERADMIN | All admins |
-| PATCH | /api/auth/:id | SUPERADMIN | Update admin |
-| DELETE | /api/auth/:id | SUPERADMIN | Delete admin |
-| PATCH | /api/auth/:id/restore | SUPERADMIN | Restore admin |
+| Method | URL | Tavsif |
+|--------|-----|--------|
+| POST | /api/auth/login | Login → OTP yuboradi |
+| POST | /api/auth/verify | OTP → token |
+| POST | /api/auth/refresh/:id | Token yangilash |
+| GET | /api/auth/me | Profilim |
+| GET | /api/dashboard/stats | Bosh sahifa statistikasi |
+| GET | /api/dashboard/monthly | 12 oylik grafik ma'lumot |
+| CRUD | /api/teachers | O'qituvchilar |
+| CRUD | /api/students | O'quvchilar |
+| CRUD | /api/groups | Guruhlar |
+| POST | /api/groups/:id/students/:sid | Guruhga o'quvchi qo'shish |
+| DELETE | /api/groups/:id/students/:sid | Guruhdan chiqarish |
+| POST | /api/payments/deposit | Balansga pul qo'shish |
+| GET | /api/payments/monthly-report | Oylik to'lov hisoboti |
+| POST | /api/attendance/bulk | Guruh davomatini belgilash |
+| GET | /api/attendance/group/:id/monthly | Oylik davomat statistikasi |
 
-### Teachers
-| Method | Path | Role | Description |
-|--------|------|------|-------------|
-| POST | /api/teachers | ADMIN+ | Create |
-| GET | /api/teachers | ADMIN+ | All |
-| GET | /api/teachers/:id | ADMIN+ | One |
-| PATCH | /api/teachers/:id | ADMIN+ | Update |
-| DELETE | /api/teachers/:id | ADMIN+ | Soft delete |
-| PATCH | /api/teachers/:id/restore | SUPERADMIN | Restore |
+To'liq dokumentatsiya: `http://localhost:3000/api-docs`
 
-### Students
-| Method | Path | Role | Description |
-|--------|------|------|-------------|
-| POST | /api/students | ADMIN+ | Create |
-| GET | /api/students | ADMIN+ | All active |
-| GET | /api/students/deleted | SUPERADMIN | Left students |
-| GET | /api/students/debtors | ADMIN+ | Current month debtors |
-| GET | /api/students/:id | ADMIN+ | One (with payments & attendance) |
-| PATCH | /api/students/:id | ADMIN+ | Update |
-| DELETE | /api/students/:id | ADMIN+ | Soft delete (left center) |
-| PATCH | /api/students/:id/restore | SUPERADMIN | Restore |
+## Rollar
 
-### Groups
-| Method | Path | Role | Description |
-|--------|------|------|-------------|
-| POST | /api/groups | ADMIN+ | Create |
-| GET | /api/groups | ADMIN+ | All |
-| GET | /api/groups/:id | ADMIN+ | One |
-| PATCH | /api/groups/:id | ADMIN+ | Update |
-| DELETE | /api/groups/:id | ADMIN+ | Soft delete |
-| POST | /api/groups/:id/students/:studentId | ADMIN+ | Add student |
-| DELETE | /api/groups/:id/students/:studentId | ADMIN+ | Remove student |
-| GET | /api/groups/:id/attendance?date=YYYY-MM-DD | ADMIN+ | Attendance by date |
-
-### Payments
-| Method | Path | Role | Description |
-|--------|------|------|-------------|
-| POST | /api/payments/deposit | ADMIN+ | Add payment to student balance |
-| GET | /api/payments | ADMIN+ | All payments |
-| GET | /api/payments/monthly-report?month=YYYY-MM | ADMIN+ | Monthly paid/debt report |
-| GET | /api/payments/student/:studentId | ADMIN+ | Student payment history |
-| DELETE | /api/payments/:id | SUPERADMIN | Delete (reverses balance) |
-
-### Attendance
-| Method | Path | Role | Description |
-|--------|------|------|-------------|
-| POST | /api/attendance | ADMIN+ | Single attendance mark |
-| POST | /api/attendance/bulk | ADMIN+ | Bulk attendance for group |
-| GET | /api/attendance/group/:id?date=YYYY-MM-DD | ADMIN+ | By group & date |
-| GET | /api/attendance/group/:id/monthly?month=YYYY-MM | ADMIN+ | Monthly stats |
-| GET | /api/attendance/student/:id | ADMIN+ | Student history |
-| PATCH | /api/attendance/:id | ADMIN+ | Update status |
-| DELETE | /api/attendance/:id | ADMIN+ | Delete |
-
-### Dashboard
-| Method | Path | Role | Description |
-|--------|------|------|-------------|
-| GET | /api/dashboard/stats | ADMIN+ | Groups, teachers, students, left counts |
-| GET | /api/dashboard/monthly | ADMIN+ | Last 12 months student stats |
-
-## Auto Charge (CRON)
-
-Har oyning 1-kuni soat 00:01 da barcha aktiv o'quvchilarning balansidan
-ularning guruhlari `monthly_fee` si avtomatik yechiladi va `payment` jadvaliga
-`type: charge` sifatida yoziladi.
+| Amal | ADMIN | SUPERADMIN |
+|------|-------|------------|
+| O'qituvchi/Guruh/Talaba CRUD | ✅ | ✅ |
+| To'lov qo'shish | ✅ | ✅ |
+| Davomat belgilash | ✅ | ✅ |
+| Adminlarni boshqarish | ❌ | ✅ |
+| Soft-delete tiklash | ❌ | ✅ |

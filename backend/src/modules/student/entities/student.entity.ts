@@ -1,4 +1,5 @@
 import { BaseEntity } from 'src/database/entities/base-entity';
+import { STUDENT_RELATIONS } from 'src/database/relations/student.relations';
 import { Column, Entity, ManyToMany, OneToMany } from 'typeorm';
 import { Group } from 'src/modules/group/entities/group.entity';
 import { Payment } from 'src/modules/payment/entities/payment.entity';
@@ -30,3 +31,6 @@ export class Student extends BaseEntity {
   @OneToMany(() => Attendance, (attendance) => attendance.student)
   attendances: Attendance[];
 }
+
+// Export relations used by this entity
+export { STUDENT_RELATIONS };

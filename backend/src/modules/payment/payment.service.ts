@@ -2,12 +2,13 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Payment } from './entities/payment.entity';
+import { PAYMENT_RELATIONS } from 'src/database/relations/payment.relations';
 import { Student } from 'src/modules/student/entities/student.entity';
 import { Auth } from 'src/modules/auth/entities/auth.entity';
 import { CreatePaymentDto } from './dto/create-payment.dto';
-import { Cron, CronExpression } from '@nestjs/schedule';
+import { Cron } from '@nestjs/schedule';
 import { Group } from 'src/modules/group/entities/group.entity';
-import { PaymentType } from 'src/shared/enums/payment-type.unum';
+import { PaymentType } from 'src/shared/enums/payment-type.enum';
 import { PaymentMethod } from 'src/shared/enums/payment-method.enum';
 
 @Injectable()
@@ -18,7 +19,6 @@ export class PaymentService {
     @InjectRepository(Group) private groupRepo: Repository<Group>,
   ) {}
 
-  // Admin deposits money to student balance
   async deposit(dto: CreatePaymentDto, admin: Auth) {
     const student = await this.studentRepo.findOne({ where: { id: dto.student_id } });
     if (!student) throw new NotFoundException('Student not found');
@@ -39,12 +39,16 @@ export class PaymentService {
   }
 
   async findAll() {
-    return this.paymentRepo.find({ relations: ['student', 'admin'] });
+    return this.paymentRepo.find({
+      relations: PAYMENT_RELATIONS,
+      order: { createdAt: 'DESC' },
+    });
   }
 
   async findByStudent(studentId: number) {
     const student = await this.studentRepo.findOne({ where: { id: studentId } });
     if (!student) throw new NotFoundException('Student not found');
+
     return this.paymentRepo.find({
       where: { student: { id: studentId } },
       relations: ['admin'],
@@ -53,60 +57,65 @@ export class PaymentService {
   }
 
   async findOne(id: number) {
-    const payment = await this.paymentRepo.findOne({ where: { id }, relations: ['student', 'admin'] });
+    const payment = await this.paymentRepo.findOne({ where: { id }, relations: PAYMENT_RELATIONS });
     if (!payment) throw new NotFoundException('Payment not found');
     return payment;
   }
 
   async remove(id: number) {
     const payment = await this.findOne(id);
-    // Reverse balance if deposit
+    // Reverse balance if it was a deposit
     if (payment.type === PaymentType.DEPOSIT) {
       const student = payment.student;
-      student.balance = Number(student.balance) - Number(payment.amount);
+      student.balance = Math.max(0, Number(student.balance) - Number(payment.amount));
       await this.studentRepo.save(student);
     }
     await this.paymentRepo.softDelete(id);
-    return { message: 'Payment deleted' };
+    return { message: 'Payment deleted and balance reversed' };
   }
 
-  // Monthly payment report — who paid / who didn't
   async getMonthlyReport(month?: string) {
     const targetMonth = month ?? this.currentMonth();
 
     const students = await this.studentRepo
       .createQueryBuilder('s')
       .leftJoinAndSelect('s.groups', 'g')
-      .leftJoinAndSelect('s.payments', 'p', 'p.month = :month', { month: targetMonth })
+      .leftJoinAndSelect('s.payments', 'p', 'p.month = :month AND p.type = :type', {
+        month: targetMonth,
+        type: PaymentType.DEPOSIT,
+      })
       .where('s.deletedAt IS NULL')
+      .orderBy('s.name', 'ASC')
       .getMany();
 
-    return students.map((s) => {
-      const totalFee = s.groups.reduce((sum, g) => sum + Number(g.monthly_fee), 0);
-      const totalPaid = s.payments.reduce((sum, p) => sum + Number(p.amount), 0);
-      return {
-        student_id: s.id,
-        name: s.name,
-        phone: s.phone,
-        balance: Number(s.balance),
-        totalFee,
-        totalPaid,
-        debt: Math.max(0, totalFee - totalPaid),
-        status: totalPaid >= totalFee ? 'paid' : 'debt',
-        month: targetMonth,
-      };
-    });
+    return {
+      month: targetMonth,
+      report: students.map((s) => {
+        const totalFee = s.groups.reduce((sum, g) => sum + Number(g.monthly_fee), 0);
+        const totalPaid = s.payments.reduce((sum, p) => sum + Number(p.amount), 0);
+        const debt = Math.max(0, totalFee - Number(s.balance));
+        return {
+          student_id: s.id,
+          name: s.name,
+          phone: s.phone,
+          balance: Number(s.balance),
+          totalFee,
+          totalPaid,
+          debt,
+          status: Number(s.balance) >= totalFee ? 'paid' : 'debt',
+          month: targetMonth,
+        };
+      }),
+    };
   }
 
-  // Auto-charge: runs on 1st of every month at 00:01
+  /** Auto-charge monthly fees: 1st of every month at 00:01 */
   @Cron('1 0 1 * *')
   async autoChargeMonthlyFees() {
     const month = this.currentMonth();
     console.log(`[CRON] Auto-charging monthly fees for ${month}`);
 
-    const students = await this.studentRepo.find({
-      relations: ['groups'],
-    });
+    const students = await this.studentRepo.find({ relations: ['groups'] });
 
     for (const student of students) {
       if (!student.groups.length) continue;
@@ -114,11 +123,9 @@ export class PaymentService {
       const totalFee = student.groups.reduce((sum, g) => sum + Number(g.monthly_fee), 0);
       if (totalFee <= 0) continue;
 
-      // Deduct from balance
       student.balance = Number(student.balance) - totalFee;
       await this.studentRepo.save(student);
 
-      // Record charge payment
       const payment = this.paymentRepo.create({
         amount: totalFee,
         method: PaymentMethod.TRANSFER,
@@ -131,7 +138,7 @@ export class PaymentService {
       await this.paymentRepo.save(payment);
     }
 
-    console.log(`[CRON] Monthly charges done for ${students.length} students`);
+    console.log(`[CRON] Done. Charged ${students.length} students for ${month}`);
   }
 
   private currentMonth(): string {

@@ -1,30 +1,41 @@
-import * as nodemailer from "nodemailer";
+import * as nodemailer from 'nodemailer';
 
-const transporter = nodemailer.createTransport({
-  service: "gmail",
-  auth: {
-    user: process.env.EMAIL,
-    pass: process.env.EMAIL_PASS_KEY, 
-  },
-});
+async function  getTransporter() {
+  return nodemailer.createTransport({
+    host: process.env.MAIL_HOST || 'smtp.gmail.com',
+    port: Number(process.env.MAIL_PORT) || 587,
+    secure: false,
+    auth: {
+      user: process.env.MAIL_USER,
+      pass: process.env.MAIL_PASS,
+    },
+  });
+}
 
 export async function otpSender(otp: string, email: string): Promise<void> {
-  try {
-    await transporter.sendMail({
-      from: `"Your App" <${process.env.EMAIL}>`,
-      to: email,
-      subject: "Your OTP Code",
-      text: `Your OTP code is: ${otp}`,
-      html: `
-        <div style="font-family: Arial; text-align: center;">
-          <h2>OTP Verification</h2>
-          <p>Your code is:</p>
-          <h1 style="color: #4CAF50;">${otp}</h1>
-          <p>This code will expire soon.</p>
+  const transporter = await getTransporter(); // har safar chaqirilganda yaratiladi
+
+  await transporter.sendMail({
+    from: `"Education CRM" <${process.env.MAIL_USER}>`,
+    to: email,
+    subject: 'CRM — OTP tasdiqlash kodi',
+    html: `
+      <div style="font-family:Arial,sans-serif;max-width:400px;margin:40px auto;
+                  border:1px solid #e5e7eb;border-radius:12px;overflow:hidden;">
+        <div style="background:#3730d9;padding:24px;text-align:center;">
+          <h2 style="color:#fff;margin:0;">🎓 Education CRM</h2>
         </div>
-      `,
-    });
-  } catch (error: any) {
-    throw new Error(error.message);
-  }
+        <div style="padding:32px;text-align:center;">
+          <p style="color:#6b7280;margin:0 0 16px;">Tizimga kirish uchun OTP kodingiz:</p>
+          <div style="background:#f0f3ff;border-radius:10px;padding:20px;
+                      font-size:2rem;font-weight:800;color:#3730d9;letter-spacing:0.4em;">
+            ${otp}
+          </div>
+          <p style="color:#9ca3af;font-size:13px;margin:16px 0 0;">
+            expires in 2 minutes.
+          </p>
+        </div>
+      </div>
+    `,
+  });
 }

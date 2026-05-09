@@ -1,11 +1,19 @@
 import { BaseEntity } from 'src/database/entities/base-entity';
-import { Column, Entity, JoinColumn, JoinTable, ManyToMany, ManyToOne, OneToMany } from 'typeorm';
+import { GROUP_LIST_RELATIONS, GROUP_DETAIL_RELATIONS } from 'src/database/relations/group.relations';
+import { WeekDays } from 'src/shared/enums/week-days.enum';
+import { LessonTime } from 'src/shared/enums/lesson-time.enum';
+import {
+  Column,
+  Entity,
+  JoinColumn,
+  JoinTable,
+  ManyToMany,
+  ManyToOne,
+  OneToMany,
+} from 'typeorm';
 import { Teacher } from 'src/modules/teacher/entities/teacher.entity';
 import { Student } from 'src/modules/student/entities/student.entity';
 import { Attendance } from 'src/modules/attendance/entities/attendance.entity';
-import { WeekDays } from 'src/shared/enums/week-days.enum';
-import { LessonTime } from 'src/shared/enums/lesson-time.enum';
-
 
 @Entity('group')
 export class Group extends BaseEntity {
@@ -24,7 +32,10 @@ export class Group extends BaseEntity {
   @Column({ type: 'decimal', precision: 10, scale: 2 })
   monthly_fee!: number;
 
-  @ManyToOne(() => Teacher, (teacher) => teacher.groups, { nullable: true, onDelete: 'SET NULL' })
+  @ManyToOne(() => Teacher, (teacher) => teacher.groups, {
+    nullable: true,
+    onDelete: 'SET NULL',
+  })
   @JoinColumn({ name: 'teacher_id' })
   teacher: Teacher;
 
@@ -39,3 +50,6 @@ export class Group extends BaseEntity {
   @OneToMany(() => Attendance, (attendance) => attendance.group)
   attendances: Attendance[];
 }
+
+// Export relations used by this entity
+export { GROUP_LIST_RELATIONS, GROUP_DETAIL_RELATIONS };

@@ -1,0 +1,133 @@
+/* ============================================================
+   DESIGN TOKENS — O'quv Markazi CRM
+   Barcha ranglar, fontlar, o'lchamlar shu yerda.
+   Rebrending: faqat shu faylni o'zgartiring — hamma joyda o'zgaradi.
+   ============================================================ */
+
+:root {
+  /* ── Brand palette ─────────────────────────────────── */
+  --brand-50:  #eef1ff;
+  --brand-100: #e0e4ff;
+  --brand-200: #c7ceff;
+  --brand-300: #a5aeff;
+  --brand-400: #818cf8;
+  --brand-500: #3730d9;   /* primary */
+  --brand-600: #2d28c4;
+  --brand-700: #231fa3;
+  --brand-800: #1c1980;
+  --brand-900: #141260;
+
+  /* ── Accent ────────────────────────────────────────── */
+  --accent-danger:  #ef4444;
+  --accent-success: #22c55e;
+  --accent-warning: #f59e0b;
+  --accent-info:    #3b82f6;
+
+  /* ── Semantic (light mode) ─────────────────────────── */
+  --bg-base:        #f1f3fb;
+  --bg-surface:     #ffffff;
+  --bg-surface-2:   #f8f9ff;
+  --bg-sidebar:     #2d28c4;
+  --bg-sidebar-item:#3730d9;
+  --bg-sidebar-active: rgba(255,255,255,0.15);
+
+  --text-primary:   #111827;
+  --text-secondary: #6b7280;
+  --text-muted:     #9ca3af;
+  --text-on-brand:  #ffffff;
+  --text-heading:   #2d28c4;
+
+  --border-color:   #e5e7eb;
+  --border-focus:   #3730d9;
+
+  --shadow-sm:  0 1px 3px rgba(0,0,0,0.08);
+  --shadow-md:  0 4px 16px rgba(55,48,217,0.10);
+  --shadow-lg:  0 8px 32px rgba(55,48,217,0.14);
+  --shadow-card: 0 2px 12px rgba(0,0,0,0.06);
+
+  /* ── Table ─────────────────────────────────────────── */
+  --table-header-bg:   #2d28c4;
+  --table-header-text: #ffffff;
+  --table-row-odd:     #ffffff;
+  --table-row-even:    #f0f3ff;
+  --table-row-hover:   #e8ecff;
+
+  /* ── Sidebar ───────────────────────────────────────── */
+  --sidebar-width:        220px;
+  --sidebar-width-collapsed: 64px;
+
+  /* ── Typography ────────────────────────────────────── */
+  --font-sans:  'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono:  'JetBrains Mono', 'Fira Code', monospace;
+
+  --text-xs:   0.75rem;
+  --text-sm:   0.875rem;
+  --text-base: 1rem;
+  --text-lg:   1.125rem;
+  --text-xl:   1.25rem;
+  --text-2xl:  1.5rem;
+  --text-3xl:  1.875rem;
+  --text-4xl:  2.25rem;
+
+  /* ── Spacing ───────────────────────────────────────── */
+  --space-1:  0.25rem;
+  --space-2:  0.5rem;
+  --space-3:  0.75rem;
+  --space-4:  1rem;
+  --space-5:  1.25rem;
+  --space-6:  1.5rem;
+  --space-8:  2rem;
+  --space-10: 2.5rem;
+  --space-12: 3rem;
+
+  /* ── Border radius ─────────────────────────────────── */
+  --radius-sm:  6px;
+  --radius-md:  10px;
+  --radius-lg:  14px;
+  --radius-xl:  20px;
+  --radius-full: 9999px;
+
+  /* ── Transitions ───────────────────────────────────── */
+  --transition-fast:   150ms ease;
+  --transition-base:   250ms ease;
+  --transition-slow:   400ms ease;
+
+  /* ── Z-index ───────────────────────────────────────── */
+  --z-sidebar:  100;
+  --z-header:   90;
+  --z-modal:    200;
+  --z-toast:    300;
+  --z-tooltip:  250;
+}
+
+/* ── Dark mode ──────────────────────────────────────────── */
+[data-theme="dark"] {
+  --bg-base:        #0f1117;
+  --bg-surface:     #1a1d2e;
+  --bg-surface-2:   #1f2235;
+  --bg-sidebar:     #131520;
+  --bg-sidebar-item:#1a1d2e;
+  --bg-sidebar-active: rgba(99, 102, 241, 0.20);
+
+  --text-primary:   #f1f5f9;
+  --text-secondary: #94a3b8;
+  --text-muted:     #64748b;
+  --text-heading:   #818cf8;
+
+  --border-color:   #2a2d45;
+  --border-focus:   #818cf8;
+
+  --shadow-sm:  0 1px 3px rgba(0,0,0,0.3);
+  --shadow-md:  0 4px 16px rgba(0,0,0,0.4);
+  --shadow-lg:  0 8px 32px rgba(0,0,0,0.5);
+  --shadow-card: 0 2px 12px rgba(0,0,0,0.25);
+
+  --table-header-bg:   #1e2140;
+  --table-header-text: #c7ceff;
+  --table-row-odd:     #1a1d2e;
+  --table-row-even:    #1f2340;
+  --table-row-hover:   #252847;
+
+  --brand-500: #818cf8;
+  --text-heading: #818cf8;
+}

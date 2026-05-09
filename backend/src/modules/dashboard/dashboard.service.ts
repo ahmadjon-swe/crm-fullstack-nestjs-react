@@ -14,22 +14,47 @@ export class DashboardService {
   ) {}
 
   async getMainStats() {
+    const now = new Date();
+    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+    const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
+
     const [
       totalGroups,
       totalTeachers,
       totalStudents,
-      leftStudents,
+      totalLeftStudents,
+      newStudentsThisMonth,
+      leftStudentsThisMonth,
     ] = await Promise.all([
       this.groupRepo.count(),
       this.teacherRepo.count(),
       this.studentRepo.count(),
       this.studentRepo.count({ where: { deletedAt: Not(IsNull()) }, withDeleted: true }),
+      this.studentRepo.count({
+        where: {
+          createdAt: Between(monthStart, monthEnd),
+        },
+      }),
+      this.studentRepo
+        .createQueryBuilder('s')
+        .withDeleted()
+        .where('s.deletedAt >= :start AND s.deletedAt <= :end', {
+          start: monthStart,
+          end: monthEnd,
+        })
+        .getCount(),
     ]);
 
-    return { totalGroups, totalTeachers, totalStudents, leftStudents };
+    return {
+      totalGroups,
+      totalTeachers,
+      totalStudents,
+      totalLeftStudents,
+      newStudentsThisMonth,
+      leftStudentsThisMonth,
+    };
   }
 
-  // Monthly student stats for last 12 months
   async getMonthlyStudentStats() {
     const months = this.getLast12Months();
 
@@ -38,47 +63,33 @@ export class DashboardService {
         const startDate = new Date(year, month - 1, 1);
         const endDate = new Date(year, month, 0, 23, 59, 59);
 
-        // New students registered this month (including deleted)
-        const newStudents = await this.studentRepo
-          .createQueryBuilder('s')
-          .withDeleted()
-          .where('s.createdAt >= :start AND s.createdAt <= :end', {
-            start: startDate,
-            end: endDate,
-          })
-          .getCount();
+        const [newStudents, leftStudents, activeStudents] = await Promise.all([
+          this.studentRepo
+            .createQueryBuilder('s')
+            .withDeleted()
+            .where('s.createdAt >= :start AND s.createdAt <= :end', { start: startDate, end: endDate })
+            .getCount(),
 
-        // Students who left (soft-deleted) this month
-        const leftStudents = await this.studentRepo
-          .createQueryBuilder('s')
-          .withDeleted()
-          .where('s.deletedAt >= :start AND s.deletedAt <= :end', {
-            start: startDate,
-            end: endDate,
-          })
-          .getCount();
+          this.studentRepo
+            .createQueryBuilder('s')
+            .withDeleted()
+            .where('s.deletedAt >= :start AND s.deletedAt <= :end', { start: startDate, end: endDate })
+            .getCount(),
 
-        // Active students at end of this month
-        const activeStudents = await this.studentRepo
-          .createQueryBuilder('s')
-          .withDeleted()
-          .where('s.createdAt <= :end', { end: endDate })
-          .andWhere('(s.deletedAt IS NULL OR s.deletedAt > :end)', { end: endDate })
-          .getCount();
+          this.studentRepo
+            .createQueryBuilder('s')
+            .withDeleted()
+            .where('s.createdAt <= :end', { end: endDate })
+            .andWhere('(s.deletedAt IS NULL OR s.deletedAt > :end)', { end: endDate })
+            .getCount(),
+        ]);
 
-        const leftPercent = activeStudents > 0
-          ? Math.round((leftStudents / (activeStudents + leftStudents)) * 100)
-          : 0;
+        const leftPercent =
+          activeStudents + leftStudents > 0
+            ? Math.round((leftStudents / (activeStudents + leftStudents)) * 100)
+            : 0;
 
-        return {
-          label,
-          year,
-          month,
-          newStudents,
-          activeStudents,
-          leftStudents,
-          leftPercent,
-        };
+        return { label, year, month, newStudents, activeStudents, leftStudents, leftPercent };
       }),
     );
 
@@ -93,9 +104,14 @@ export class DashboardService {
       months.push({
         year: d.getFullYear(),
         month: d.getMonth() + 1,
-        label: d.toLocaleString('en-US', { month: 'short', year: '2-digit' }),
+        label: d.toLocaleString('uz-UZ', { month: 'short', year: '2-digit' }),
       });
     }
     return months;
   }
+}
+
+// TypeORM Between operator
+function Between(start: Date, end: Date) {
+  return require('typeorm').Between(start, end);
 }

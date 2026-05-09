@@ -1,10 +1,9 @@
-import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsEnum, IsOptional } from 'class-validator';
+import { ApiProperty } from '@nestjs/swagger';
+import { IsEnum } from 'class-validator';
 import { AttendanceStatus } from 'src/shared/enums/attendance-status.enum';
 
 export class UpdateAttendanceDto {
-  @ApiPropertyOptional({ enum: AttendanceStatus })
-  @IsOptional()
+  @ApiProperty({ enum: AttendanceStatus, description: 'New attendance status' })
   @IsEnum(AttendanceStatus)
-  status?: AttendanceStatus;
+  status: AttendanceStatus;
 }

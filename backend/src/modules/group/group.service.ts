@@ -2,6 +2,7 @@ import { BadRequestException, Injectable, NotFoundException } from '@nestjs/comm
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Group } from './entities/group.entity';
+import { GROUP_LIST_RELATIONS, GROUP_DETAIL_RELATIONS } from 'src/database/relations/group.relations';
 import { Student } from 'src/modules/student/entities/student.entity';
 import { Teacher } from 'src/modules/teacher/entities/teacher.entity';
 import { CreateGroupDto } from './dto/create-group.dto';
@@ -31,14 +32,11 @@ export class GroupService {
   }
 
   async findAll() {
-    return this.groupRepo.find({ relations: ['teacher', 'students'] });
+    return this.groupRepo.find({ relations: GROUP_LIST_RELATIONS, order: { createdAt: 'DESC' } });
   }
 
   async findOne(id: number) {
-    const group = await this.groupRepo.findOne({
-      where: { id },
-      relations: ['teacher', 'students', 'attendances'],
-    });
+    const group = await this.groupRepo.findOne({ where: { id }, relations: GROUP_DETAIL_RELATIONS });
     if (!group) throw new NotFoundException('Group not found');
     return group;
   }
@@ -58,7 +56,7 @@ export class GroupService {
   async remove(id: number) {
     await this.findOne(id);
     await this.groupRepo.softDelete(id);
-    return { message: 'Group deleted' };
+    return { message: 'Group deleted successfully' };
   }
 
   async addStudent(groupId: number, studentId: number) {
@@ -71,12 +69,13 @@ export class GroupService {
     const student = await this.studentRepo.findOne({ where: { id: studentId } });
     if (!student) throw new NotFoundException('Student not found');
 
-    const alreadyIn = group.students.some((s) => s.id === studentId);
-    if (alreadyIn) throw new BadRequestException('Student already in this group');
+    if (group.students.some((s) => s.id === studentId)) {
+      throw new BadRequestException('Student is already in this group');
+    }
 
     group.students.push(student);
     await this.groupRepo.save(group);
-    return { message: 'Student added to group' };
+    return { message: 'Student added to group successfully' };
   }
 
   async removeStudent(groupId: number, studentId: number) {
@@ -86,22 +85,21 @@ export class GroupService {
     });
     if (!group) throw new NotFoundException('Group not found');
 
-    const studentIndex = group.students.findIndex((s) => s.id === studentId);
-    if (studentIndex === -1) throw new NotFoundException('Student not in this group');
+    const idx = group.students.findIndex((s) => s.id === studentId);
+    if (idx === -1) throw new NotFoundException('Student is not in this group');
 
-    // Remove attendance records for this student in this group
+    // Delete attendance records for this student in this group
     await this.groupRepo.manager.query(
       `DELETE FROM attendance WHERE student_id = $1 AND group_id = $2`,
       [studentId, groupId],
     );
 
-    group.students.splice(studentIndex, 1);
+    group.students.splice(idx, 1);
     await this.groupRepo.save(group);
-    return { message: 'Student removed from group' };
+    return { message: 'Student removed from group (attendance cleared)' };
   }
 
-  // Attendance list for a specific group on a specific date
-  async getAttendanceByDate(groupId: number, date?: string) {
+  async getAttendanceByDate(groupId: number, date: string) {
     const group = await this.groupRepo.findOne({
       where: { id: groupId },
       relations: ['students'],
@@ -109,17 +107,20 @@ export class GroupService {
     if (!group) throw new NotFoundException('Group not found');
 
     const attendances = await this.groupRepo.manager.query(
-      `SELECT a.*, s.name as student_name, s.phone as student_phone
+      `SELECT a.id, a.status, a.date, s.id as student_id, s.name as student_name, s.phone as student_phone
        FROM attendance a
        JOIN student s ON s.id = a.student_id
-       WHERE a.group_id = $1 AND a.date = $2`,
+       WHERE a.group_id = $1 AND a.date = $2
+       ORDER BY s.name ASC`,
       [groupId, date],
     );
 
     return {
       group_id: groupId,
+      group_name: group.name,
       date,
       total_students: group.students.length,
+      marked: attendances.length,
       records: attendances,
     };
   }

@@ -1,0 +1,138 @@
+.group-detail { display: flex; flex-direction: column; gap: var(--space-5); }
+
+.gd-topbar {
+  display: flex; align-items: center; justify-content: space-between;
+  flex-wrap: wrap; gap: var(--space-3);
+}
+.btn-back-nav {
+  display: flex; align-items: center; gap: 6px;
+  background: none; border: 1.5px solid var(--border-color);
+  border-radius: var(--radius-md); padding: 7px 14px;
+  font-size: var(--text-sm); font-weight: 600; color: var(--text-secondary);
+  cursor: pointer; font-family: var(--font-sans);
+  transition: all var(--transition-fast);
+}
+.btn-back-nav:hover { border-color: var(--brand-500); color: var(--brand-500); }
+.gd-topbar-actions { display: flex; gap: var(--space-3); flex-wrap: wrap; }
+
+.gd-layout {
+  display: grid;
+  grid-template-columns: 300px 1fr;
+  gap: var(--space-5);
+  align-items: start;
+}
+
+/* ── Left panel ── */
+.gd-left { display: flex; flex-direction: column; gap: var(--space-4); }
+
+.gd-info-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: var(--space-5);
+  box-shadow: var(--shadow-card);
+}
+.gd-group-name {
+  font-size: var(--text-xl); font-weight: 800;
+  color: var(--text-heading); margin: 0 0 var(--space-4);
+}
+.gd-teacher-row {
+  display: flex; align-items: center; gap: var(--space-3);
+  margin-bottom: var(--space-4);
+  padding-bottom: var(--space-4);
+  border-bottom: 1px solid var(--border-color);
+}
+.gd-teacher-avatar {
+  width: 52px; height: 52px; border-radius: 50%; flex-shrink: 0;
+  background: var(--brand-100); color: var(--brand-500);
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 800; font-size: var(--text-lg); overflow: hidden;
+}
+[data-theme="dark"] .gd-teacher-avatar { background: rgba(55,48,217,0.15); }
+.gd-teacher-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.gd-info-label { font-size: var(--text-xs); color: var(--text-muted); margin-bottom: 2px; }
+.gd-teacher-name { font-weight: 700; color: var(--text-primary); font-size: var(--text-sm); }
+.gd-teacher-phone { display: flex; align-items: center; gap: 4px; font-size: var(--text-xs); color: var(--text-secondary); }
+
+.gd-meta-rows { display: flex; flex-direction: column; gap: 10px; }
+.gd-meta-row { display: flex; align-items: center; justify-content: space-between; font-size: var(--text-sm); }
+.gd-meta-label { color: var(--text-secondary); font-weight: 500; }
+.gd-meta-val { display: flex; align-items: center; gap: 4px; color: var(--text-primary); font-weight: 600; }
+.gd-val-green { color: var(--accent-success); }
+
+.gd-debtors-card {
+  background: var(--bg-surface);
+  border: 1px solid #fde68a;
+  border-radius: var(--radius-lg);
+  padding: var(--space-4) var(--space-5);
+  box-shadow: var(--shadow-card);
+}
+[data-theme="dark"] .gd-debtors-card { border-color: rgba(245,158,11,0.3); }
+.gd-debtors-title {
+  display: flex; align-items: center; gap: 6px;
+  font-size: var(--text-sm); font-weight: 700;
+  color: var(--text-primary); margin: 0 0 var(--space-3);
+}
+.gd-debtors-list { margin: 0; padding-left: 0; list-style: none; display: flex; flex-direction: column; gap: 8px; }
+.gd-debtor-item { display: flex; align-items: center; gap: 8px; font-size: var(--text-sm); }
+.gd-debtor-num { color: var(--text-muted); font-weight: 600; }
+.gd-debtor-name { color: var(--text-primary); font-weight: 500; }
+
+/* ── Right panel ── */
+.gd-right {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+  overflow: hidden;
+}
+
+.gd-att-bar {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: var(--space-4) var(--space-5);
+  border-bottom: 1px solid var(--border-color);
+  background: var(--bg-surface-2);
+  flex-wrap: wrap; gap: var(--space-3);
+}
+.gd-section-title {
+  display: flex; align-items: center; gap: 6px;
+  font-size: var(--text-base); font-weight: 700;
+  color: var(--text-primary); margin: 0;
+}
+.gd-att-controls { display: flex; align-items: center; gap: var(--space-3); }
+
+.pay-check {
+  background: none; border: none; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: var(--radius-md); padding: 4px;
+  transition: all var(--transition-fast);
+}
+.pay-check--paid  { color: var(--accent-success); }
+.pay-check--unpaid { color: var(--border-color); }
+.pay-check--unpaid:hover { color: var(--accent-success); }
+
+.att-btn {
+  width: 32px; height: 32px; border-radius: 8px;
+  border: 1.5px solid var(--border-color);
+  font-weight: 700; font-size: var(--text-sm);
+  cursor: pointer; font-family: var(--font-sans);
+  transition: all var(--transition-fast);
+  display: flex; align-items: center; justify-content: center;
+}
+.att-btn--present { background: #dcfce7; border-color: var(--accent-success); color: var(--accent-success); }
+.att-btn--absent  { background: #fee2e2; border-color: var(--accent-danger);  color: var(--accent-danger); }
+.att-btn--late    { background: #fef9c3; border-color: #ca8a04; color: #ca8a04; }
+[data-theme="dark"] .att-btn--present { background: rgba(34,197,94,0.15); }
+[data-theme="dark"] .att-btn--absent  { background: rgba(239,68,68,0.15); }
+[data-theme="dark"] .att-btn--late    { background: rgba(245,158,11,0.15); }
+
+/* ── Responsive ── */
+@media (max-width: 1100px) {
+  .gd-layout { grid-template-columns: 1fr; }
+  .gd-left { flex-direction: row; flex-wrap: wrap; }
+  .gd-info-card, .gd-debtors-card { flex: 1 1 280px; }
+}
+@media (max-width: 600px) {
+  .gd-left { flex-direction: column; }
+  .gd-att-bar { flex-direction: column; align-items: flex-start; }
+}

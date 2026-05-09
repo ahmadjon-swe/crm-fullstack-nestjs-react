@@ -1,10 +1,13 @@
 import { BaseEntity } from 'src/database/entities/base-entity';
+import {
+  ATTENDANCE_GROUP_RELATIONS,
+  ATTENDANCE_STUDENT_RELATIONS,
+} from 'src/database/relations/attendance.relations';
+import { AttendanceStatus } from 'src/shared/enums/attendance-status.enum';
 import { Column, Entity, JoinColumn, ManyToOne, Unique } from 'typeorm';
 import { Student } from 'src/modules/student/entities/student.entity';
 import { Group } from 'src/modules/group/entities/group.entity';
 import { Auth } from 'src/modules/auth/entities/auth.entity';
-import { AttendanceStatus } from 'src/shared/enums/attendance-status.enum';
-
 
 @Entity('attendance')
 @Unique(['student', 'group', 'date'])
@@ -27,3 +30,6 @@ export class Attendance extends BaseEntity {
   @JoinColumn({ name: 'admin_id' })
   admin: Auth;
 }
+
+// Export relations used by this entity
+export { ATTENDANCE_GROUP_RELATIONS, ATTENDANCE_STUDENT_RELATIONS };

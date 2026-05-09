@@ -1,5 +1,5 @@
 import { Controller, Get, UseGuards } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { DashboardService } from './dashboard.service';
 import { AuthGuard } from 'src/common/guards/auth.guard';
 import { RolesGuard } from 'src/common/guards/roles.guard';
@@ -15,14 +15,22 @@ export class DashboardController {
 
   @Get('stats')
   @Roles(RolesAdmin.ADMIN, RolesAdmin.SUPERADMIN)
-  @ApiOperation({ summary: 'Main menu stats: groups, teachers, students, left students count' })
+  @ApiOperation({ summary: 'Main dashboard stats: groups, teachers, students, left count, this month stats' })
+  @ApiResponse({
+    status: 200,
+    description: 'Returns totalGroups, totalTeachers, totalStudents, totalLeftStudents, newStudentsThisMonth, leftStudentsThisMonth',
+  })
   getMainStats() {
     return this.dashboardService.getMainStats();
   }
 
   @Get('monthly')
   @Roles(RolesAdmin.ADMIN, RolesAdmin.SUPERADMIN)
-  @ApiOperation({ summary: 'Monthly student stats for last 12 months (new, active, left, left%)' })
+  @ApiOperation({ summary: 'Monthly student stats for last 12 months (bar chart data)' })
+  @ApiResponse({
+    status: 200,
+    description: 'Array of 12 months with label, year, month, newStudents, activeStudents, leftStudents, leftPercent',
+  })
   getMonthlyStudentStats() {
     return this.dashboardService.getMonthlyStudentStats();
   }
